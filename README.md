@@ -274,6 +274,43 @@ Loss = FP * C_FP + FN * C_FN
 
 ## Описание API
 
+### GET /health
+
+- ответ 200: JSON
+```json
+{"status": "ok", "service": "credit-default-api", "version": "1.0.0"}
+```
+
+### POST /predict
+
+#### Заголовок
+Content-Type: application/json
+
+#### Тело
+Объект JSON со всеми признаками из датасета, кроме ID и default.payment.next.month. Имена полей должны совпадать с датасетом.
+
+#### Ответ: 200
+```json
+{
+  "prediction": 0,
+  "probability_default": 0.18,
+  "model_version": "1.0.0"
+}
+```
+
+- prediction - метка класса (0 или 1)
+- probability_default - вероятность положительного класса дефолта
+
+#### Ошибки
+
+| Код | Причина |
+| - | - |
+| 400 | Не JSON, неверная структура, отсутствуют признаки, нечисловые значения |
+| 503 | Не найдены файлы модели или конфигурации признаков |
+
+### Примеры
+
+Запрос предсказания
 ```shell
 $body = @{
   LIMIT_BAL=200000; SEX=2; EDUCATION=2; MARRIAGE=1; AGE=35
@@ -283,4 +320,9 @@ $body = @{
 } | ConvertTo-Json -Compress
 
 Invoke-RestMethod -Uri "http://127.0.0.1:8080/predict" -Method Post -ContentType "application/json" -Body $body
+```
+
+Запрос health
+```shell
+curl http://127.0.0.1:8080/health
 ```
